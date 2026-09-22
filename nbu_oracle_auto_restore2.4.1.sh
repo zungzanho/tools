@@ -11,7 +11,7 @@
 ##   - Supports latest restore and point-in-time recovery (PITR).
 ##   - Redirected restore can rename redo members and clear redo groups after restore.
 ## Disclaimer:
-##   - Testing and learning use only. Review and validate carefully before any production use.
+##   - Testing and learning use only.
 ###################################################################################################################################
 
 set -u
