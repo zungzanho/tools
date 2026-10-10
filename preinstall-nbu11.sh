@@ -8,301 +8,161 @@ main() {
     export LANG="en_US.UTF-8"
     export LC_ALL="en_US.UTF-8"
 
-    trap 'rc=$?; printf "[ALERT] Failed: line=%s exit=%s command=%s\n" "$LINENO" "$rc" "$BASH_COMMAND" >&2; exit "$rc"' ERR
-    trap 'printf "[ALERT] Execution interrupted.\n" >&2; exit 130' INT
-    trap 'printf "[ALERT] Execution terminated.\n" >&2; exit 143' TERM
+    trap 'rc=$?; printf "[ALERT] Line %s failed (exit %s): %s\n" "$LINENO" "$rc" "$BASH_COMMAND" >&2; exit "$rc"' ERR
 
-    die() {
-        printf '[ALERT] %s\n' "$*" >&2
+    if [[ "$EUID" -ne 0 ]]; then
+        echo '[ALERT] This script must be run as root.' >&2
         exit 1
-    }
-
-    [[ "$EUID" -eq 0 ]] ||
-        die "Root privileges are required. Non-root execution is prohibited."
-
-    [[ -r /etc/os-release ]] ||
-        die "Cannot read /etc/os-release."
+    fi
 
     source /etc/os-release
-
-    case "${ID:-}" in
-        rhel|rocky|ol) ;;
+    case "${ID:-}:${VERSION_ID:-}" in
+        rhel:8|rhel:8.*|rhel:9|rhel:9.*|rhel:10|rhel:10.*|\
+        rocky:8|rocky:8.*|rocky:9|rocky:9.*|rocky:10|rocky:10.*|\
+        ol:8|ol:8.*|ol:9|ol:9.*|ol:10|ol:10.*)
+            ;;
         *)
-            die "Unsupported distribution: ${ID:-unknown}. Only RHEL, Rocky Linux, and Oracle Linux are allowed."
+            echo '[ALERT] Only RHEL, Rocky Linux, and Oracle Linux 8/9/10 are supported.' >&2
+            exit 1
             ;;
     esac
 
-    case "${VERSION_ID:-}" in
-        8|8.*|9|9.*|10|10.*) ;;
-        *)
-            die "Unsupported version: ${VERSION_ID:-unknown}. Only versions 8, 9, and 10 are allowed."
-            ;;
-    esac
-
-    printf '[INFO] Operating system: %s\n' \
-        "${PRETTY_NAME:-${ID} ${VERSION_ID}}"
-
-    local cmd
-    for cmd in dnf getent useradd groupadd usermod id hostname \
-               sysctl getenforce setenforce sed cut mktemp chmod \
-               chown mv mkdir cat cmp rm flock; do
-        command -v "$cmd" >/dev/null ||
-            die "Required command is unavailable: $cmd"
-    done
-
-    [[ -x /usr/sbin/nologin ]] ||
-        die "/usr/sbin/nologin is unavailable."
-
-    [[ -f /etc/selinux/config ]] ||
-        die "/etc/selinux/config is unavailable."
-
-    exec 9>/run/nbu-preinstall.lock
-    flock -n 9 ||
-        die "Another NBU preinstallation process is running."
-
-    local fqdn root_home
     fqdn="$(hostname -f)"
-    [[ -n "$fqdn" && "$fqdn" == *.* &&
-       "$fqdn" != *[[:space:]]* ]] ||
-        die "hostname -f must return a fully qualified hostname."
+    if [[ "$fqdn" != *.* || "$fqdn" == *[[:space:]]* ]]; then
+        echo '[ALERT] hostname -f must return a fully qualified hostname.' >&2
+        exit 1
+    fi
 
-    root_home="$(getent passwd root | cut -d: -f6)"
-    [[ -n "$root_home" && -d "$root_home" ]] ||
-        die "Root home directory is unavailable."
+    packages=(
+        libnsl.so.1 libnsl libcrypt.so.1
+        libXtst libXrender xorg-x11-xinit
+        nginx samba nfs-utils podman
+    )
 
-    NBU_PREINSTALL_WORKDIR="$(mktemp -d /run/nbu-preinstall.XXXXXX)"
-    trap 'rc=$?; trap - ERR; if ! rm -rf -- "$NBU_PREINSTALL_WORKDIR"; then printf "[ALERT] Temporary-directory cleanup failed.\n" >&2; [[ "$rc" -ne 0 ]] || rc=1; fi; exit "$rc"' EXIT
+    echo '[INFO] Checking and installing required packages...'
+    dnf_log="$(mktemp /tmp/nbu-dnf.XXXXXX)"
 
-    write_if_changed() {
-        local destination="$1" mode="$2" candidate staged rc
+    if dnf install -y "${packages[@]}" >"$dnf_log" 2>&1; then
+        rm -f "$dnf_log"
+        echo '[SUCCESS] All requested packages are installed.'
+    else
+        rc=$?
+        echo "[ALERT] Package installation failed (exit $rc)." >&2
+        cat "$dnf_log" >&2
+        echo "[INFO] Installation log: $dnf_log" >&2
+        exit "$rc"
+    fi
 
-        [[ ! -L "$destination" ]] ||
-            die "Refusing to replace symbolic link: $destination."
-        [[ ! -e "$destination" || -f "$destination" ]] ||
-            die "Destination is not a regular file: $destination."
-
-        candidate="$(mktemp "$NBU_PREINSTALL_WORKDIR/content.XXXXXX")"
-        cat > "$candidate"
-
-        if [[ -f "$destination" ]]; then
-            if cmp -s "$candidate" "$destination"; then
-                chmod "$mode" "$destination"
-                chown root:root "$destination"
-                rm -f -- "$candidate"
-                return 0
-            else
-                rc=$?
-                [[ "$rc" -eq 1 ]] ||
-                    die "Cannot compare configuration: $destination."
-            fi
-        fi
-
-        staged="$(mktemp "${destination}.XXXXXX")"
-        cat "$candidate" > "$staged"
-        chmod "$mode" "$staged"
-        chown root:root "$staged"
-        mv -fT -- "$staged" "$destination"
-        rm -f -- "$candidate"
-
-        printf '[INFO] Updated %s\n' "$destination"
-    }
-
-    entry_exists() {
+    exists() {
         local rc
         if getent "$1" "$2" >/dev/null; then
             return 0
         else
             rc=$?
             [[ "$rc" -eq 2 ]] && return 1
-            die "getent failed for $1/$2 (exit $rc)."
+            echo "[ALERT] getent failed for $1/$2 (exit $rc)." >&2
+            exit "$rc"
         fi
     }
 
-    ensure_shell() {
-        local account="$1" current_shell
-        current_shell="$(getent passwd "$account" | cut -d: -f7)"
+    exists passwd nbsvcusr ||
+        useradd -M -c 'NetBackup Services account' \
+            -d /usr/openv/ -s /usr/sbin/nologin nbsvcusr
 
-        if [[ "$current_shell" != /usr/sbin/nologin ]]; then
-            usermod -s /usr/sbin/nologin "$account"
-        fi
-    }
+    exists group nbwebgrp || groupadd nbwebgrp
 
-    printf '[INFO] Ensuring required packages are installed...\n'
-    dnf install -y \
-        libnsl.so.1 libnsl libcrypt.so.1 \
-        libXtst libXrender xorg-x11-xinit \
-        nginx samba nfs-utils podman
-
-    printf '[INFO] Ensuring service accounts are configured...\n'
-
-    if ! entry_exists group nbwebgrp; then
-        groupadd nbwebgrp
+    if [[ "$(id -gn nbsvcusr)" == nbwebgrp ]]; then
+        echo '[ALERT] nbwebgrp must not be the primary group of nbsvcusr.' >&2
+        exit 1
     fi
 
-    if ! entry_exists passwd nbsvcusr; then
-        useradd -M \
-            -c 'NetBackup Services account' \
-            -d /usr/openv \
-            -s /usr/sbin/nologin nbsvcusr
+    usermod -aG nbwebgrp -s /usr/sbin/nologin nbsvcusr
+
+    exists passwd nbwebsvc ||
+        useradd -M -g nbwebgrp -c 'NetBackup Web Services account' \
+            -d /usr/openv/wmc -s /usr/sbin/nologin nbwebsvc
+
+    if [[ "$(id -u nbsvcusr)" -eq 0 ||
+          "$(id -u nbwebsvc)" -eq 0 ||
+          "$(id -u nbsvcusr)" == "$(id -u nbwebsvc)" ]]; then
+        echo '[ALERT] Service accounts must have distinct, nonzero UIDs.' >&2
+        exit 1
     fi
 
-    local web_gid service_uid service_gid groups
-    web_gid="$(getent group nbwebgrp | cut -d: -f3)"
-    service_uid="$(id -u nbsvcusr)"
-    service_gid="$(id -g nbsvcusr)"
+    usermod -g nbwebgrp -s /usr/sbin/nologin nbwebsvc
+    echo '[SUCCESS] Service accounts are configured.'
 
-    [[ "$service_uid" -ne 0 ]] ||
-        die "nbsvcusr must not have UID 0."
+    sed -i \
+        '/^[[:space:]]*\*[[:space:]]\+\(soft\|hard\)[[:space:]]\+nofile[[:space:]]/d;
+         /^[[:space:]]*root[[:space:]]\+\(soft\|hard\)[[:space:]]\+nofile[[:space:]]/d' \
+        /etc/security/limits.conf
 
-    [[ "$service_gid" != "$web_gid" ]] ||
-        die "nbwebgrp must be a supplementary group, not the primary group of nbsvcusr."
-
-    groups="$(id -G nbsvcusr)"
-    case " $groups " in
-        *" $web_gid "*) ;;
-        *) usermod -aG nbwebgrp nbsvcusr ;;
-    esac
-
-    ensure_shell nbsvcusr
-
-    if ! entry_exists passwd nbwebsvc; then
-        useradd -M -g nbwebgrp \
-            -c 'NetBackup Web Services account' \
-            -d /usr/openv/wmc \
-            -s /usr/sbin/nologin nbwebsvc
-    fi
-
-    local web_uid web_primary_gid
-    web_uid="$(id -u nbwebsvc)"
-
-    [[ "$web_uid" -ne 0 && "$web_uid" != "$service_uid" ]] ||
-        die "nbwebsvc must have a distinct, nonzero UID."
-
-    web_primary_gid="$(id -g nbwebsvc)"
-    if [[ "$web_primary_gid" != "$web_gid" ]]; then
-        usermod -g nbwebgrp nbwebsvc
-    fi
-
-    ensure_shell nbwebsvc
-
-    printf '[INFO] Ensuring file limits are configured...\n'
-    mkdir -p /etc/security/limits.d
-
-    write_if_changed /etc/security/limits.d/99-nbu-preinstall.conf 0644 <<'EOF'
-*        soft nofile 8192
-*        hard nofile 8192
-root     soft nofile 8192
-root     hard nofile 8192
-nbsvcusr soft nofile 8192
-nbsvcusr hard nofile 8192
-nbwebsvc soft nofile 8192
-nbwebsvc hard nofile 8192
+    cat >> /etc/security/limits.conf <<'EOF'
+* soft nofile 8192
+* hard nofile 8192
+root soft nofile 8192
+root hard nofile 8192
 EOF
 
-    local soft_limit
-    soft_limit="$(ulimit -Sn)"
-    if [[ "$soft_limit" == unlimited || "$soft_limit" -gt 8192 ]]; then
-        ulimit -Sn 8192
-    fi
-    ulimit -Hn 8192
-    ulimit -Sn 8192
+    touch /etc/sysctl.conf
+    sed -i \
+        '/^[[:space:]]*kernel\.sem[[:space:]]*=/d;
+         /^[[:space:]]*fs\.file-max[[:space:]]*=/d' \
+        /etc/sysctl.conf
 
-    printf '[INFO] Ensuring kernel parameters are configured...\n'
-    local sysctl_candidate="$NBU_PREINSTALL_WORKDIR/sysctl.conf"
-
-    [[ ! -L /etc/sysctl.conf ]] ||
-        die "Refusing to replace symbolic link: /etc/sysctl.conf."
-
-    if [[ -f /etc/sysctl.conf ]]; then
-        sed \
-            -e '/^[[:space:]]*kernel\.sem[[:space:]]*=/d' \
-            -e '/^[[:space:]]*fs\.file-max[[:space:]]*=/d' \
-            /etc/sysctl.conf > "$sysctl_candidate"
-    else
-        : > "$sysctl_candidate"
-    fi
-
-    cat >> "$sysctl_candidate" <<'EOF'
+    cat >> /etc/sysctl.conf <<'EOF'
 kernel.sem = 300 307200 100 1024
 fs.file-max = 3245530
 EOF
 
-    write_if_changed /etc/sysctl.conf 0644 < "$sysctl_candidate"
+    sysctl -p /etc/sysctl.conf >/dev/null
+    echo '[SUCCESS] File limits and kernel parameters are configured.'
 
-    local current_sem current_filemax
-    current_sem="$(sysctl -n kernel.sem)"
-    current_sem="${current_sem//$'\t'/ }"
-
-    if [[ "$current_sem" != '300 307200 100 1024' ]]; then
-        sysctl -w 'kernel.sem=300 307200 100 1024'
-    fi
-
-    current_filemax="$(sysctl -n fs.file-max)"
-    if [[ "$current_filemax" != 3245530 ]]; then
-        sysctl -w 'fs.file-max=3245530'
-    fi
-
-    current_sem="$(sysctl -n kernel.sem)"
-    current_sem="${current_sem//$'\t'/ }"
-    current_filemax="$(sysctl -n fs.file-max)"
-
-    [[ "$current_sem" == '300 307200 100 1024' ]] ||
-        die "kernel.sem verification failed."
-    [[ "$current_filemax" == 3245530 ]] ||
-        die "fs.file-max verification failed."
-
-    printf '[INFO] Ensuring SELinux is configured...\n'
-    local selinux_state current_selinux
-    local selinux_candidate="$NBU_PREINSTALL_WORKDIR/selinux.config"
-
-    selinux_state="$(getenforce)"
-    case "$selinux_state" in
+    case "$(getenforce)" in
         Enforcing) setenforce 0 ;;
         Permissive|Disabled) ;;
-        *) die "Unexpected SELinux state: $selinux_state." ;;
+        *)
+            echo '[ALERT] Unexpected SELinux state.' >&2
+            exit 1
+            ;;
     esac
 
-    sed '/^[[:space:]]*SELINUX[[:space:]]*=/d' \
-        /etc/selinux/config > "$selinux_candidate"
-    printf 'SELINUX=disabled\n' >> "$selinux_candidate"
+    sed -i '/^[[:space:]]*SELINUX[[:space:]]*=/d' /etc/selinux/config
+    echo 'SELINUX=disabled' >> /etc/selinux/config
+    echo '[SUCCESS] SELinux configuration is updated.'
 
-    write_if_changed /etc/selinux/config 0644 < "$selinux_candidate"
+    root_home="$(getent passwd root | cut -d: -f6)"
+    [[ -n "$root_home" && -d "$root_home" ]] || {
+        echo '[ALERT] Root home directory is unavailable.' >&2
+        exit 1
+    }
 
-    current_selinux="$(getenforce)"
-    [[ "$current_selinux" == Permissive ||
-       "$current_selinux" == Disabled ]] ||
-        die "SELinux runtime verification failed."
+    touch "$root_home/.bash_profile"
+    sed -i \
+        '/^# BEGIN NBU PATH$/,/^# END NBU PATH$/d' \
+        "$root_home/.bash_profile"
 
-    printf '[INFO] Ensuring root PATH is configured...\n'
-    local profile="${root_home}/.bash_profile"
-    local profile_candidate="$NBU_PREINSTALL_WORKDIR/bash_profile"
-
-    [[ ! -L "$profile" ]] ||
-        die "Refusing to replace symbolic link: $profile."
-
-    if [[ -f "$profile" ]]; then
-        sed \
-            '/^# BEGIN NBU PREINSTALL PATH$/,/^# END NBU PREINSTALL PATH$/d' \
-            "$profile" > "$profile_candidate"
-    else
-        : > "$profile_candidate"
-    fi
-
-    cat >> "$profile_candidate" <<'EOF'
-# BEGIN NBU PREINSTALL PATH
+    cat >> "$root_home/.bash_profile" <<'EOF'
+# BEGIN NBU PATH
 NBU_BIN_PATH="/usr/openv/netbackup/bin/goodies:/usr/openv/netbackup/bin/admincmd:/usr/openv/volmgr/bin:/usr/openv/netbackup/bin:/usr/openv/db/bin:/usr/openv/netbackup/bin/support:/usr/openv/netbackup/bin/goodies/support:/opt/VRTSpbx/bin:/opt/VRTS/bin"
 case ":${PATH:-}:" in
-    *":${NBU_BIN_PATH}:"*) ;;
-    *) PATH="${PATH:+${PATH}:}${NBU_BIN_PATH}" ;;
+    *":$NBU_BIN_PATH:"*) ;;
+    *) PATH="${PATH:+$PATH:}$NBU_BIN_PATH" ;;
 esac
 export PATH
-# END NBU PREINSTALL PATH
+# END NBU PATH
 EOF
 
-    write_if_changed "$profile" 0600 < "$profile_candidate"
+    echo '[SUCCESS] Root NetBackup PATH is configured.'
 
-    printf '[INFO] Ensuring installation answer file is configured...\n'
-    write_if_changed /tmp/NBInstallAnswer.conf 0600 <<EOF
+    if [[ -L /tmp/NBInstallAnswer.conf ||
+          -e /tmp/NBInstallAnswer.conf && ! -f /tmp/NBInstallAnswer.conf ]]; then
+        echo '[ALERT] Answer-file destination must be a regular file, not a symbolic link.' >&2
+        exit 1
+    fi
+
+    umask 077
+    cat > /tmp/NBInstallAnswer.conf <<EOF
 CLIENT_NAME = ${fqdn}
 MACHINE_ROLE = PRIMARY
 SERVER = ${fqdn}
@@ -322,14 +182,15 @@ INSTALL_ITA_DATA_COLLECTOR = no
 INCLUDE_NBDIRECTIO = EXCLUDE
 EOF
 
-    printf '[SUCCESS] NBU preinstallation completed for %s.\n' "$fqdn"
-    printf '[INFO] Answer file: /tmp/NBInstallAnswer.conf\n'
-    printf '[INFO] Open a new login shell to load the PATH changes.\n'
+    chmod 0600 /tmp/NBInstallAnswer.conf
+    echo '[SUCCESS] Answer file: /tmp/NBInstallAnswer.conf'
 
-    if [[ "$current_selinux" != Disabled ]]; then
-        printf '[ALERT] Reboot is required to fully disable SELinux.\n' >&2
+    if [[ "$(getenforce)" != Disabled ]]; then
+        echo '[ALERT] Reboot is required to fully disable SELinux.' >&2
     fi
+
+    echo '[SUCCESS] NBU preinstallation completed.'
 }
 
-# Prevent child processes from consuming the downloaded script.
+# Prevent commands from consuming the downloaded script.
 main "$@" </dev/null
