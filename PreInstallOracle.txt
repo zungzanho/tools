@@ -1,0 +1,64 @@
+dnf -y install binutils gcc gcc-c++ glibc glibc-devel ksh libaio libaio-devel libgcc libgcc.i686 libstdc++ libstdc++-devel libXi libXtst libnsl make sysstat libXrender xorg-x11-xinit
+
+MEMTOTAL=$(free -b | awk 'NR == 2 {print $2}')
+SHMMAX=$((MEMTOTAL / 2))
+SHMMNI=4096
+PAGESIZE=$(getconf PAGE_SIZE)
+
+cat > /etc/sysctl.d/50-oracle.conf <<EOF
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+kernel.shmmax = $SHMMAX
+kernel.shmall = $((SHMMAX / PAGESIZE * (SHMMNI / 16)))
+kernel.shmmni = $SHMMNI
+kernel.sem = 250 32000 100 128
+kernel.panic_on_oops = 1
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+EOF
+
+sysctl --system
+
+i=54321
+for group in oinstall dba oper backupdba dgdba kmdba asmdba asmoper asmadmin racdba; do
+    groupadd -g "$i" "$group"
+    i=$((i + 1))
+done
+
+useradd -m -u 54321 -g oinstall \
+    -G dba,oper,backupdba,dgdba,kmdba,asmdba,racdba \
+    -d /usr/oracle -s /bin/bash oracle
+
+printf '%s\n' 'oracle:1' | chpasswd
+
+mkdir -p /u01/app/oracle
+chown -R oracle:oinstall /u01/app
+chmod -R 755 /u01
+
+cat > /etc/security/limits.d/50-oracle.conf <<'EOF'
+oracle   soft   nofile   1024
+oracle   hard   nofile   65536
+oracle   soft   nproc    16384
+oracle   hard   nproc    16384
+oracle   soft   stack    10240
+oracle   hard   stack    32768
+oracle   hard   memlock  134217728
+oracle   soft   memlock  134217728
+oracle   soft   data     unlimited
+oracle   hard   data     unlimited
+EOF
+
+su - oracle
+
+cat >> /usr/oracle/.bash_profile <<'EOF'
+umask 022
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=/usr/oracle/database
+export PATH=$PATH:$ORACLE_HOME/bin
+export ORACLE_SID=db01
+EOF
+
+source ~/.bash_profile && mkdir -p $ORACLE_HOME
