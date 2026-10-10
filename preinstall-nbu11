@@ -2,7 +2,6 @@
 # RHEL NetBackup primary server preinstallation
 # Launch on root
 # Usage: curl -fsSL https://raw.githubusercontent.com/zungzanho/tools/refs/heads/main/preinstall-nbu11 | bash -
-# Usage: bash ./preinstall-nbu11.sh
 
 set -Eeuo pipefail
 umask 022
