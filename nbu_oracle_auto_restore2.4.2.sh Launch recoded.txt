@@ -1,0 +1,179 @@
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01 -recovertime "10/10/2026 21:13:50"
+[2026-10-10 23:25:21] [INFO] Script version: 2.4.2
+[2026-10-10 23:25:21] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-10 23:25:21] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-10 23:25:21] [INFO] ORACLE_SID set to: db01
+[2026-10-10 23:25:21] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261010232521.log
+[2026-10-10 23:25:21] [INFO] Working directory: /tmp/nbu_restore.db01.K7sSFp
+[2026-10-10 23:25:21] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-10 23:25:22] [INFO] Selected control file: /ctrl_dDB01_u1n54ibkd_s55_p1_t1246310029
+[2026-10-10 23:25:22] [INFO] Control file NetBackup timestamp: 10/10/2026 21:13:50
+[2026-10-10 23:25:22] [INFO] Selected control file backup: /ctrl_dDB01_u1n54ibkd_s55_p1_t1246310029
+[2026-10-10 23:25:22] [INFO] Recovery target time: 10/10/2026 21:13:50
+[2026-10-10 23:25:22] [INFO] A 30-second safety delay starts now. Press Ctrl+C to abort.
+[2026-10-10 23:25:52] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-10 23:25:55] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u1n54ibkd_s55_p1_t1246310029
+[2026-10-10 23:26:06] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 21:13:33
+[2026-10-10 23:26:06] [WARN] Requested time is not covered; trying the next newer control file backup.
+[2026-10-10 23:26:06] [INFO] Selected control file: /ctrl_dDB01_u1r54icom_s59_p1_t1246311190
+[2026-10-10 23:26:06] [INFO] Control file NetBackup timestamp: 10/10/2026 21:33:11
+[2026-10-10 23:26:06] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-10 23:26:11] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u1r54icom_s59_p1_t1246311190
+[2026-10-10 23:26:22] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 21:32:53
+[2026-10-10 23:26:22] [INFO] Archive backup boundary covers requested time: 10/10/2026 21:13:50
+[2026-10-10 23:26:22] [INFO] Restoring database to redirected path: /usr/oracle/oradata/DB01
+[2026-10-10 23:27:21] [INFO] Updating redo log paths under redirected restore path.
+[2026-10-10 23:27:23] [INFO] Redo log path update completed.
+[2026-10-10 23:27:23] [INFO] Recovering database; the instance will remain MOUNTED.
+[2026-10-10 23:28:08] [INFO] Database recovery completed successfully to target time: 10/10/2026 21:13:50
+[2026-10-10 23:28:08] [INFO] Database remains MOUNTED. To open it for use, connect as SYSDBA and run:
+[2026-10-10 23:28:08] [INFO] sqlplus / as sysdba
+[2026-10-10 23:28:08] [INFO] ALTER DATABASE OPEN RESETLOGS;
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01 -recovertime "10/10/2026 21:33:51"
+[2026-10-10 23:49:09] [INFO] Script version: 2.4.2
+[2026-10-10 23:49:09] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-10 23:49:09] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-10 23:49:09] [INFO] ORACLE_SID set to: db01
+[2026-10-10 23:49:09] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261010234909.log
+[2026-10-10 23:49:09] [INFO] Working directory: /tmp/nbu_restore.db01.q9yDLU
+[2026-10-10 23:49:09] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-10 23:49:10] [INFO] Selected control file: /ctrl_dDB01_u1t54idcm_s61_p1_t1246311830
+[2026-10-10 23:49:10] [INFO] Control file NetBackup timestamp: 10/10/2026 21:43:51
+[2026-10-10 23:49:10] [INFO] Selected control file backup: /ctrl_dDB01_u1t54idcm_s61_p1_t1246311830
+[2026-10-10 23:49:10] [INFO] Recovery target time: 10/10/2026 21:33:51
+[2026-10-10 23:49:10] [INFO] A 30-second safety delay starts now. Press Ctrl+C to abort.
+[2026-10-10 23:49:40] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-10 23:49:43] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u1t54idcm_s61_p1_t1246311830
+[2026-10-10 23:49:54] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 21:43:34
+[2026-10-10 23:49:54] [INFO] Archive backup boundary covers requested time: 10/10/2026 21:33:51
+[2026-10-10 23:49:54] [INFO] Restoring database to redirected path: /usr/oracle/oradata/DB01
+[2026-10-10 23:50:34] [INFO] Updating redo log paths under redirected restore path.
+[2026-10-10 23:50:35] [INFO] Redo log path update completed.
+[2026-10-10 23:50:35] [INFO] Recovering database; the instance will remain MOUNTED.
+[2026-10-10 23:50:46] [INFO] Database recovery completed successfully to target time: 10/10/2026 21:33:51
+[2026-10-10 23:50:46] [INFO] Database remains MOUNTED. To open it for use, connect as SYSDBA and run:
+[2026-10-10 23:50:46] [INFO]    sqlplus / as sysdba
+[2026-10-10 23:50:46] [INFO]    ALTER DATABASE OPEN RESETLOGS;
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01 -recovertime "10/10/2026 17:33:19"
+[2026-10-10 23:56:28] [INFO] Script version: 2.4.2
+[2026-10-10 23:56:28] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-10 23:56:28] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-10 23:56:28] [INFO] ORACLE_SID set to: db01
+[2026-10-10 23:56:28] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261010235628.log
+[2026-10-10 23:56:28] [INFO] Working directory: /tmp/nbu_restore.db01.2zBugs
+[2026-10-10 23:56:28] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-10 23:56:29] [INFO] Selected control file: /ctrl_dDB01_u1754humu_s39_p1_t1246296798
+[2026-10-10 23:56:29] [INFO] Control file NetBackup timestamp: 10/10/2026 17:33:19
+[2026-10-10 23:56:29] [INFO] Selected control file backup: /ctrl_dDB01_u1754humu_s39_p1_t1246296798
+[2026-10-10 23:56:29] [INFO] Recovery target time: 10/10/2026 17:33:19
+[2026-10-10 23:56:29] [INFO] A 30-second safety delay starts now. Press Ctrl+C to abort.
+[2026-10-10 23:56:59] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-10 23:57:04] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u1754humu_s39_p1_t1246296798
+[2026-10-10 23:57:15] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 17:33:02
+[2026-10-10 23:57:15] [WARN] Requested time is not covered; trying the next newer control file backup.
+[2026-10-10 23:57:15] [INFO] Selected control file: /ctrl_dDB01_u1954hvad_s41_p1_t1246297421
+[2026-10-10 23:57:15] [INFO] Control file NetBackup timestamp: 10/10/2026 17:43:42
+[2026-10-10 23:57:15] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-10 23:57:20] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u1954hvad_s41_p1_t1246297421
+[2026-10-10 23:57:30] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 17:43:25
+[2026-10-10 23:57:30] [INFO] Archive backup boundary covers requested time: 10/10/2026 17:33:19
+[2026-10-10 23:57:30] [INFO] Restoring database to redirected path: /usr/oracle/oradata/DB01
+[2026-10-10 23:58:10] [INFO] Updating redo log paths under redirected restore path.
+[2026-10-10 23:58:11] [INFO] Redo log path update completed.
+[2026-10-10 23:58:11] [INFO] Recovering database; the instance will remain MOUNTED.
+[2026-10-10 23:58:22] [INFO] Database recovery completed successfully to target time: 10/10/2026 17:33:19
+[2026-10-10 23:58:22] [INFO] Database remains MOUNTED. To open it for use, connect as SYSDBA and run:
+[2026-10-10 23:58:22] [INFO]    sqlplus / as sysdba
+[2026-10-10 23:58:22] [INFO]    ALTER DATABASE OPEN RESETLOGS;
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01 -recovertime "10/10/2016 17:33:19"
+[2026-10-10 23:59:17] [INFO] Script version: 2.4.2
+[2026-10-10 23:59:17] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-10 23:59:17] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-10 23:59:17] [INFO] ORACLE_SID set to: db01
+[2026-10-10 23:59:17] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261010235917.log
+[2026-10-10 23:59:17] [INFO] Working directory: /tmp/nbu_restore.db01.lvPpSQ
+[2026-10-10 23:59:17] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-10 23:59:18] [ERROR] Requested recovery time 10/10/2016 17:33:19 is earlier than the oldest control file backup timestamp 10/10/2026 13:33:44. Please specify a recovery time within the available control file backup range.
+[2026-10-10 23:59:18] [INFO] Oldest control file backup: /ctrl_dDB01_u0654hgln_s6_p1_t1246282423
+[2026-10-10 23:59:18] [INFO] Available control file backup range: 10/10/2026 13:33:44 to 10/10/2026 23:43:58
+[2026-10-10 23:59:18] [INFO] Recovery has not started; the Oracle instance has not been changed.
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01 -recovertime "10/10/2030 17:33:19"
+[2026-10-10 23:59:28] [INFO] Script version: 2.4.2
+[2026-10-10 23:59:28] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-10 23:59:28] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-10 23:59:28] [INFO] ORACLE_SID set to: db01
+[2026-10-10 23:59:28] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261010235928.log
+[2026-10-10 23:59:28] [INFO] Working directory: /tmp/nbu_restore.db01.GcH645
+[2026-10-10 23:59:28] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-10 23:59:29] [ERROR] Requested recovery time 10/10/2030 17:33:19 is later than the newest control file backup timestamp 10/10/2026 23:43:58. Please specify an earlier recovery time.
+[2026-10-10 23:59:29] [INFO] Newest control file backup: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-10 23:59:29] [INFO] Recovery has not started; the Oracle instance has not been changed.
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient aorahost134.example.local -sid db01 -recovertime "10/10/2030 17:33:19"
+[2026-10-11 00:00:24] [INFO] Script version: 2.4.2
+[2026-10-11 00:00:24] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-11 00:00:24] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-11 00:00:24] [INFO] ORACLE_SID set to: db01
+[2026-10-11 00:00:24] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261011000024.log
+[2026-10-11 00:00:24] [INFO] Working directory: /tmp/nbu_restore.db01.rzgbwt
+[2026-10-11 00:00:24] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-11 00:00:26] [ERROR] Failed to list NetBackup control file backups.
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01
+[2026-10-11 00:06:11] [INFO] Script version: 2.4.2
+[2026-10-11 00:06:11] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-11 00:06:11] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-11 00:06:11] [INFO] ORACLE_SID set to: db01
+[2026-10-11 00:06:11] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261011000611.log
+[2026-10-11 00:06:11] [INFO] Working directory: /tmp/nbu_restore.db01.3UOCv4
+[2026-10-11 00:06:11] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-11 00:06:12] [INFO] Selected control file: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:06:12] [INFO] Control file NetBackup timestamp: 10/10/2026 23:43:58
+[2026-10-11 00:06:12] [INFO] Selected control file backup: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:06:12] [INFO] Recovery target time: latest available backup state
+[2026-10-11 00:06:12] [INFO] A 30-second safety delay starts now. Press Ctrl+C to abort.
+[2026-10-11 00:06:43] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-11 00:06:46] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:06:57] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 23:43:41
+Recover to 10/10/2026 23:43:41, the recorded archive backup boundary? [y/N]: n
+[2026-10-11 00:07:46] [INFO] Archive backup boundary was not accepted.
+[2026-10-11 00:07:46] [WARN] During RECOVER, you may need to manually add archived log files for recovery to succeed. Please contact Oracle Technical Support for assistance.
+[2026-10-11 00:07:46] [INFO] Continuing the original latest recovery without SET UNTIL TIME.
+[2026-10-11 00:07:46] [INFO] Restoring database to redirected path: /usr/oracle/oradata/DB01
+[2026-10-11 00:08:36] [INFO] Updating redo log paths under redirected restore path.
+[2026-10-11 00:08:37] [INFO] Redo log path update completed.
+[2026-10-11 00:08:37] [INFO] Recovering database; the instance will remain MOUNTED.
+[2026-10-11 00:09:05] [ERROR] RMAN step failed: recover_database. See /usr/oracle/hoyeung_nbora_log/oracle-20261011000611.log
+[2026-10-11 00:09:05] [ERROR] Failed to recover the database.
+[oracle@orahost135 ~]$ 
+[oracle@orahost135 ~]$ datafile_path=/usr/oracle/oradata/DB01 sh nbu_oracle_auto_restore2.4.2.sh -sourceclient orahost134.example.local -sid db01
+[2026-10-11 00:09:29] [INFO] Script version: 2.4.2
+[2026-10-11 00:09:29] [INFO] Current user: oracle (uid=54321, gid=54321)
+[2026-10-11 00:09:29] [INFO] Current groups: oinstall dba oper backupdba dgdba kmdba asmdba racdba
+[2026-10-11 00:09:29] [INFO] ORACLE_SID set to: db01
+[2026-10-11 00:09:29] [INFO] Log file: /usr/oracle/hoyeung_nbora_log/oracle-20261011000929.log
+[2026-10-11 00:09:29] [INFO] Working directory: /tmp/nbu_restore.db01.24Qe1t
+[2026-10-11 00:09:29] [INFO] Redirected restore enabled. Datafiles will be restored under: /usr/oracle/oradata/DB01
+[2026-10-11 00:09:30] [INFO] Selected control file: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:09:30] [INFO] Control file NetBackup timestamp: 10/10/2026 23:43:58
+[2026-10-11 00:09:30] [INFO] Selected control file backup: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:09:30] [INFO] Recovery target time: latest available backup state
+[2026-10-11 00:09:30] [INFO] A 30-second safety delay starts now. Press Ctrl+C to abort.
+[2026-10-11 00:10:00] [INFO] Starting instance in NOMOUNT using default parameter file.
+[2026-10-11 00:10:05] [INFO] Restoring control file from backup piece: /ctrl_dDB01_u2554ikdt_s69_p1_t1246319037
+[2026-10-11 00:10:16] [INFO] Recorded available archive backup boundary (Next Time): 10/10/2026 23:43:41
+Recover to 10/10/2026 23:43:41, the recorded archive backup boundary? [y/N]: y
+[2026-10-11 00:10:20] [INFO] Accepted recovery time: 10/10/2026 23:43:41
+[2026-10-11 00:10:20] [INFO] Restoring database to redirected path: /usr/oracle/oradata/DB01
+[2026-10-11 00:10:59] [INFO] Updating redo log paths under redirected restore path.
+[2026-10-11 00:11:00] [INFO] Redo log path update completed.
+[2026-10-11 00:11:00] [INFO] Recovering database; the instance will remain MOUNTED.
+[2026-10-11 00:11:29] [INFO] Database recovery completed successfully to target time: 10/10/2026 23:43:41
+[2026-10-11 00:11:29] [INFO] Database remains MOUNTED. To open it for use, connect as SYSDBA and run:
+[2026-10-11 00:11:29] [INFO]    sqlplus / as sysdba
+[2026-10-11 00:11:29] [INFO]    ALTER DATABASE OPEN RESETLOGS;
+[oracle@orahost135 ~]$
