@@ -684,8 +684,8 @@ report_recovery_success() {
         info "An exact recovered timestamp is not determined by this run; see the RMAN recovery log."
     fi
     info "Database remains MOUNTED. To open it for use, connect as SYSDBA and run:"
-    info "   sqlplus / as sysdba"
-    info "   ALTER DATABASE OPEN RESETLOGS;"
+    info " sqlplus / as sysdba"
+    info " ALTER DATABASE OPEN RESETLOGS;"
 }
 
 pause_before_restore() {
