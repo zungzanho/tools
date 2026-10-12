@@ -1,0 +1,59 @@
+# rhel8 RHEL9
+
+dnf install -y samba nfs-utils podman libnsl.so.1 libnsl libcrypt.so.1 libXtst libXrender xorg-x11-xinit fontconfig dejavu-sans-fonts
+
+########################################################################################################################################################################################################################
+
+id nbsvcusr >/dev/null 2>&1 || useradd -c 'NetBackup Services account' -d /usr/openv/ nbsvcusr
+
+getent group nbwebgrp >/dev/null || groupadd nbwebgrp
+
+id -nG nbsvcusr | grep -qw nbwebgrp || usermod -aG nbwebgrp nbsvcusr
+
+[ "$(getent passwd nbsvcusr | cut -d: -f7)" = "/usr/sbin/nologin" ] || usermod -s /usr/sbin/nologin nbsvcusr
+id nbwebsvc >/dev/null 2>&1 || useradd -g nbwebgrp -c 'NetBackup Web Services account' -d /usr/openv/wmc nbwebsvc
+
+[ "$(getent passwd nbwebsvc | cut -d: -f7)" = "/usr/sbin/nologin" ] || usermod -s /usr/sbin/nologin nbwebsvc
+
+grep -qxF '* soft nofile 8192' /etc/security/limits.conf || echo '* soft nofile 8192' >> /etc/security/limits.conf
+
+grep -qxF '* hard nofile 8192' /etc/security/limits.conf || echo '* hard nofile 8192' >> /etc/security/limits.conf
+
+grep -q '^kernel\.sem' /etc/sysctl.conf && sed -i 's/^kernel\.sem.*/kernel.sem = 300 307200 100 1024/' /etc/sysctl.conf || echo 'kernel.sem = 300 307200 100 1024' >> /etc/sysctl.conf
+
+grep -q '^fs\.file-max' /etc/sysctl.conf && sed -i 's/^fs\.file-max.*/fs.file-max = 3245530/' /etc/sysctl.conf || echo 'fs.file-max = 3245530' >> /etc/sysctl.conf
+
+sysctl -p >> /dev/null
+
+getenforce | grep -q '^Disabled$' || setenforce 0
+
+grep -q '^SELINUX=disabled$' /etc/selinux/config || sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+
+grep -q 'NBU_BIN_PATH=' ~/.bash_profile 2>/dev/null || cat >> ~/.bash_profile <<'EOF'
+NBU_BIN_PATH="/usr/openv/netbackup/bin/goodies:/usr/openv/netbackup/bin/admincmd:/usr/openv/volmgr/bin:/usr/openv/netbackup/bin:/usr/openv/db/bin:/usr/openv/netbackup/bin/support:/usr/openv/netbackup/bin/goodies/support:/opt/VRTSpbx/bin/:/opt/VRTS/bin/"
+PATH="$PATH:$NBU_BIN_PATH"
+export PATH
+EOF
+
+########################################################################################################################################################################################################################
+
+
+cat > /tmp/NBInstallAnswer.conf << EOF
+CLIENT_NAME = $(hostname -f)
+MACHINE_ROLE = PRIMARY
+SERVER = $(hostname -f)
+INSTALL_PATH = /usr/openv
+LICENSE = EVALUATION
+NB_FIPS_MODE =  Disable
+SERVICE_USER = nbsvcusr
+START_JOB_DAEMONS  = yes
+ALLOW_LONG_NBDB_MIGRATION_TIME = yes
+IGNORE_MISSING_CATALOG_BACKUP = yes
+DISASTER_RECOVERY_INSTALL = no
+ACCEPT_EULA = yes
+INCLUDE_JAVA_GUI_ON_PRIMARY = MATCH
+PROCEED_WITH_INSTALL = yes
+USE_URANDOM = ENABLE
+INSTALL_ITA_DATA_COLLECTOR = no
+INCLUDE_NBDIRECTIO = EXCLUDE
+EOF
