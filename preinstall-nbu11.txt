@@ -1,6 +1,6 @@
 # rhel8 RHEL9
 
-dnf install -y samba nfs-utils podman libnsl.so.1 libnsl libcrypt.so.1 libXtst libXrender xorg-x11-xinit fontconfig dejavu-sans-fonts
+dnf install -y chkconfig libXtst libXrender nginx samba nfs-utils podman
 
 ########################################################################################################################################################################################################################
 
