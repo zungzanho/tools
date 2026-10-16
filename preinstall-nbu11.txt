@@ -1,6 +1,6 @@
 # rhel8 RHEL9
 
-dnf install -y chkconfig libXtst libXrender nginx samba nfs-utils podman
+dnf install -y chkconfig libxcrypt-compat libXtst libXrender nginx samba nfs-utils podman
 
 ########################################################################################################################################################################################################################
 
